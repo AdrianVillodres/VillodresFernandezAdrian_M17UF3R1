@@ -15,6 +15,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     public int speed;
     private bool attack;
     private GameObject target;
+    Animator animator;
 
     void Awake()
     {
@@ -22,6 +23,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         playerInputs = new Inputs();
         playerInputs.Player.SetCallbacks(this);
         character = GetComponent<MainCharacter>();
+        animator = GetComponent<Animator>();
         Healthbar.maxValue = HP;
         Healthbar.value = HP;
     }
@@ -46,10 +48,12 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         if (context.performed)
         {
             ipMove = context.ReadValue<Vector3>();
+            animator.SetBool("isRunning", true);
         }
         else if (context.canceled)
         {
             ipMove = Vector3.zero;
+            animator.SetBool("isRunning", false);
         }
     }
 
