@@ -17,10 +17,18 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     private GameObject target;
     Animator animator;
 
+
+    [SerializeField] private float jumpForce = 5f;
+    [SerializeField] private float rayDistance = 0.2f;
+    [SerializeField] private LayerMask groundLayer;
+    private BoxCollider boxCollider;
+
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         playerInputs = new Inputs();
+        boxCollider = GetComponent<BoxCollider>();
         playerInputs.Player.SetCallbacks(this);
         character = GetComponent<MainCharacter>();
         animator = GetComponent<Animator>();
@@ -31,7 +39,17 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     void FixedUpdate()
     {
         rb.MovePosition(rb.position + speed * Time.deltaTime * ipMove.normalized);
+
+        Vector3 rayOrigin = transform.position + Vector3.down * (boxCollider.size.y / 2f - 0.05f);
+        float rayDistance = 0.1f;
+
+        Debug.DrawRay(rayOrigin, Vector3.down * rayDistance, Color.red);
+
+        bool isGrounded = Physics.Raycast(rayOrigin, Vector3.down, rayDistance, groundLayer);
+        animator.SetBool("IsJumping", !isGrounded);
     }
+
+
 
     private void OnEnable()
     {
@@ -57,21 +75,6 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         }
     }
 
-    public void TakeDamage(int damage)
-    {
-        HP -= damage;
-        if (HP <= 0)
-        {
-            Destroy(gameObject);
-        }
-        Healthbar.value = HP;
-    }
-
-    public void Hurt(int damage)
-    {
-        TakeDamage(damage);
-    }
-
     public void OnDealDamage(InputAction.CallbackContext context)
     {
         if (context.performed && attack)
@@ -85,6 +88,48 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
                 }
             }
         }
+    }
+
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            Debug.Log("OnJump activado por: " + context.control);
+            Vector3 rayOrigin = transform.position + Vector3.down * (boxCollider.size.y / 2f - 0.05f);
+            float rayLength = 0.1f;
+
+            Debug.DrawRay(rayOrigin, Vector3.down * rayLength, Color.green, 1f);
+
+            if (Physics.Raycast(rayOrigin, Vector3.down, rayLength, groundLayer))
+            {
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                animator.SetBool("IsJumping", true);
+                Debug.Log("Saltando");
+            }
+            else
+            {
+                Debug.Log("No grounded");
+            }
+        }
+    }
+
+
+
+
+
+    public void TakeDamage(int damage)
+    {
+        HP -= damage;
+        if (HP <= 0)
+        {
+            Destroy(gameObject);
+        }
+        Healthbar.value = HP;
+    }
+
+    public void Hurt(int damage)
+    {
+        TakeDamage(damage);
     }
 
     private void OnCollisionEnter(Collision collision)

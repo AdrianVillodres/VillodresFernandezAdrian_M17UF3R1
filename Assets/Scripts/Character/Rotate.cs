@@ -1,0 +1,49 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Rotate : MonoBehaviour
+{
+    Vector3[] directions = new Vector3[]
+    {
+    new Vector3(0, 0, 1),
+    new Vector3(1, 0, 1),
+    new Vector3(1, 0, 0),
+    new Vector3(1, 0, -1),
+    new Vector3(0, 0, -1),
+    new Vector3(-1, 0, -1),
+    new Vector3(-1, 0, 0),
+    new Vector3(-1, 0, 1)
+    };
+
+    private void Update()
+    {
+        Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+
+        if (moveDir != Vector3.zero)
+        {
+            moveDir.Normalize();
+            RotateTo8Direction(moveDir);
+        }
+
+    }
+
+    void RotateTo8Direction(Vector3 moveDir)
+    {
+        float maxDot = -Mathf.Infinity;
+        Vector3 bestDir = Vector3.zero;
+
+        foreach (Vector3 dir in directions)
+        {
+            float dot = Vector3.Dot(moveDir, dir.normalized);
+            if (dot > maxDot)
+            {
+                maxDot = dot;
+                bestDir = dir;
+            }
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(bestDir);
+        transform.rotation = targetRotation;
+    }
+}
