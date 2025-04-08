@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,17 +9,18 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     private Inputs playerInputs;
     public int HP = 10;
     public Vector3 ipMove;
-    private Rigidbody rb;
+    public Rigidbody rb;
     private MainCharacter character;
     public Slider Healthbar;
     public int speed;
     private bool attack;
+    private bool isGrounded = false;
+    private bool crouched = false;
     private GameObject target;
     Animator animator;
 
 
-    [SerializeField] private float jumpForce = 5f;
-    [SerializeField] private float rayDistance = 0.2f;
+    public float jumpForce = 5f;
     [SerializeField] private LayerMask groundLayer;
     private BoxCollider boxCollider;
 
@@ -40,16 +41,24 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     {
         rb.MovePosition(rb.position + speed * Time.deltaTime * ipMove.normalized);
 
-        Vector3 rayOrigin = transform.position + Vector3.down * (boxCollider.size.y / 2f - 0.05f);
-        float rayDistance = 0.1f;
+
+        Vector3 rayOrigin = transform.position + Vector3.up * 0.5f;
+        float rayDistance = 0.5f;
+        RaycastHit hit;
+
+        if (Physics.Raycast(rayOrigin, Vector3.down, out hit, rayDistance))
+        {
+            Debug.Log("Raycast hit: " + hit.collider.name);
+            isGrounded = true;
+        }
+        else
+        {
+            Debug.Log("Raycast did not hit anything.");
+            isGrounded = false;
+        }
 
         Debug.DrawRay(rayOrigin, Vector3.down * rayDistance, Color.red);
-
-        bool isGrounded = Physics.Raycast(rayOrigin, Vector3.down, rayDistance, groundLayer);
-        animator.SetBool("IsJumping", !isGrounded);
     }
-
-
 
     private void OnEnable()
     {
@@ -92,29 +101,48 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
 
     public void OnJump(InputAction.CallbackContext context)
     {
+
+        if (context.performed && isGrounded == true)
+        {
+            animator.SetBool("IsJumping", true);
+            Debug.Log("Saltando");
+        }
+        else
+        {
+            animator.SetBool("IsJumping", false);
+        }
+    }
+
+    public void OnCrouch(InputAction.CallbackContext context)
+    {
         if (context.performed)
         {
-            Debug.Log("OnJump activado por: " + context.control);
-            Vector3 rayOrigin = transform.position + Vector3.down * (boxCollider.size.y / 2f - 0.05f);
-            float rayLength = 0.1f;
-
-            Debug.DrawRay(rayOrigin, Vector3.down * rayLength, Color.green, 1f);
-
-            if (Physics.Raycast(rayOrigin, Vector3.down, rayLength, groundLayer))
+            if(crouched == false)
             {
-                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-                animator.SetBool("IsJumping", true);
-                Debug.Log("Saltando");
+                animator.SetBool("IsCrouching", true);
+                crouched = true;
+                StartCoroutine(WaitForAction(0.1f));
+                animator.SetBool("Crouched", true);
             }
             else
             {
-                Debug.Log("No grounded");
+                animator.SetBool("IsCrouching", false);
+                crouched = false;
             }
         }
     }
 
-
-
+    public void OnDance(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            animator.SetBool("IsDancing", true);
+        }
+        else if (context.canceled)
+        {
+            animator.SetBool("IsDancing", false);
+        }
+    }
 
 
     public void TakeDamage(int damage)
@@ -149,4 +177,21 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
             target = null;
         }
     }
+    public void StartJumpCoroutine()
+    {
+        StartCoroutine(DelayedJump());
+    }
+
+    private IEnumerator DelayedJump()
+    {
+        yield return new WaitForSeconds(0.5f);
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+    }
+
+    private IEnumerator WaitForAction(float wait)
+    {
+        yield return new WaitForSeconds(wait);
+    }
+
+
 }
