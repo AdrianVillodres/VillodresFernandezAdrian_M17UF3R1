@@ -12,7 +12,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     public Rigidbody rb;
     private MainCharacter character;
     public Slider Healthbar;
-    public int speed;
+    private int speed = 5;
     private bool attack;
     private bool isGrounded = false;
     private bool crouched = false;
@@ -75,12 +75,21 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         if (context.performed)
         {
             ipMove = context.ReadValue<Vector3>();
-            animator.SetBool("isRunning", true);
+            animator.SetBool("IsWalking", true);
         }
         else if (context.canceled)
         {
             ipMove = Vector3.zero;
-            animator.SetBool("isRunning", false);
+            animator.SetBool("IsWalking", false);
+        }
+
+        if (context.performed && crouched == true)
+        {
+            animator.SetBool("CrouchedWalking", true);
+        }
+        else if (context.canceled && crouched == true)
+        {
+            animator.SetBool("CrouchedWalking", false);
         }
     }
 
@@ -96,6 +105,20 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
                     hurteable.Hurt(1);
                 }
             }
+        }
+    }
+    public void OnRun(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            speed = 10;
+            animator.SetBool("isRunning", true);
+        }
+        else if (context.canceled)
+        {
+            speed = 5;
+            animator.SetBool("isRunning", false);
+            animator.SetBool("IsWalking", true);
         }
     }
 
@@ -119,14 +142,22 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         {
             if(crouched == false)
             {
+                speed = 3;
                 animator.SetBool("IsCrouching", true);
+                animator.SetBool("StandingUp", false);
+                animator.SetBool("StandUp", false);
                 crouched = true;
                 StartCoroutine(WaitForAction(0.1f));
                 animator.SetBool("Crouched", true);
             }
             else
             {
+                speed = 5;
+                crouched = false;
+                animator.SetBool("StandingUp", true);
                 animator.SetBool("IsCrouching", false);
+                animator.SetBool("Crouched", false);
+                animator.SetBool("StandUp", true);
                 crouched = false;
             }
         }
