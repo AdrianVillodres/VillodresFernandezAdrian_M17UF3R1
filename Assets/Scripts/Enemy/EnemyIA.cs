@@ -25,7 +25,7 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
     private bool lostPlayer = false;
     private Vector3 lastSeenPosition;
     private float lostPlayerTimer = 0;
-
+    public Animator animator;
     private ChaseBehaviour chaseBehaviour;
     private NavMeshAgent agent;
 
@@ -35,6 +35,7 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
         enemyInputs.Enemy.SetCallbacks(this);
         chaseBehaviour = GetComponent<ChaseBehaviour>();
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
         Healthbar.maxValue = HP;
         Healthbar.value = HP;
     }
@@ -95,24 +96,6 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
         }
         lostPlayer = true;
     }
-
-   /* private void OnTriggerEnter(Collider collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            SeePlayer(collision.gameObject);
-        }
-        CheckEndingConditions();
-    }
-
-    private void OnTriggerExit(Collider collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            LostPlayer();
-        }
-        CheckEndingConditions();
-    }*/
 
     private void OnCollisionEnter(Collision collision)
     {

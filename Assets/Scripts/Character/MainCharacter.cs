@@ -224,5 +224,15 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         yield return new WaitForSeconds(wait);
     }
 
-
+    public void OnAim(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            animator.SetBool("IsAiming", true);
+        }
+        else if (context.canceled)
+        {
+            animator.SetBool("IsAiming", false);
+        }
+    }
 }
