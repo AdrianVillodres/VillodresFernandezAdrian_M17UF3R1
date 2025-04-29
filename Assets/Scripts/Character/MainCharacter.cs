@@ -15,6 +15,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     private int speed = 5;
     private bool attack;
     private bool isGrounded = false;
+    private bool isAiming = false;
     private bool crouched = false;
     private GameObject target;
     Animator animator;
@@ -90,6 +91,19 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         else if (context.canceled && crouched == true)
         {
             animator.SetBool("CrouchedWalking", false);
+        }
+
+        if (context.performed && isAiming == true)
+        {
+            animator.SetBool("IsAiming", true);
+            animator.SetBool("IsAimingIdle", false);
+            animator.SetBool("IsAimingWalking", true);
+        }
+        else if (context.canceled && isAiming == true)
+        {
+            animator.SetBool("IsAiming", true);
+            animator.SetBool("IsAimingIdle", true);
+            animator.SetBool("IsAimingWalking", false);
         }
     }
 
@@ -228,11 +242,17 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     {
         if (context.performed)
         {
+            isAiming = true;
             animator.SetBool("IsAiming", true);
+            animator.SetBool("IsAimingIdle", true);
         }
         else if (context.canceled)
         {
+            isAiming = false;
+            animator.SetBool("IsAimingWalking", false);
             animator.SetBool("IsAiming", false);
+            animator.SetBool("IsAimingIdle", false);
+            animator.gameObject.GetComponent<CameraManager>().SwitchCamera("ThirdPerson");
         }
     }
 }
