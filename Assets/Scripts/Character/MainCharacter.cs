@@ -19,7 +19,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     private bool crouched = false;
     private GameObject target;
     Animator animator;
-
+    private Sword sword;
 
     public float jumpForce = 5f;
     [SerializeField] private LayerMask groundLayer;
@@ -32,6 +32,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         playerInputs = new Inputs();
         boxCollider = GetComponent<BoxCollider>();
         playerInputs.Player.SetCallbacks(this);
+        sword = GetComponent<Sword>();
         character = GetComponent<MainCharacter>();
         animator = GetComponent<Animator>();
         Healthbar.maxValue = HP;
