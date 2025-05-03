@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
@@ -13,18 +12,19 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     private MainCharacter character;
     public Slider Healthbar;
     private int speed = 5;
-    private bool attack;
+    public bool attack;
     private bool isGrounded = false;
     private bool isAiming = false;
     private bool crouched = false;
     private GameObject target;
     Animator animator;
     private Sword sword;
+    public bool isAttacking = false;
 
     public float jumpForce = 5f;
     [SerializeField] private LayerMask groundLayer;
     private BoxCollider boxCollider;
-
+    private bool canMove = true;
 
     void Awake()
     {
@@ -41,8 +41,10 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
 
     void FixedUpdate()
     {
-        rb.MovePosition(rb.position + speed * Time.deltaTime * ipMove.normalized);
-
+        if (canMove)
+        {
+            rb.MovePosition(rb.position + speed * Time.deltaTime * ipMove.normalized);
+        }
 
         Vector3 rayOrigin = transform.position + Vector3.up * 0.5f;
         float rayDistance = 0.5f;
@@ -74,6 +76,8 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
 
     public void OnMovement(InputAction.CallbackContext context)
     {
+        if (!canMove) return;
+
         if (context.performed)
         {
             ipMove = context.ReadValue<Vector3>();
@@ -106,13 +110,24 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
             animator.SetBool("IsAimingIdle", true);
             animator.SetBool("IsAimingWalking", false);
         }
+
+        if (attack == true)
+        {
+            ipMove = Vector3.zero;
+            animator.SetBool("IsWalking", false);
+            attack = false;
+        }
     }
 
     public void OnDealDamage(InputAction.CallbackContext context)
     {
-        if (context.performed && attack)
+        if (context.performed && !isAttacking)
         {
-            if (target != null)
+            animator.SetTrigger("Attack");
+            isAttacking = true;
+            canMove = false;
+
+            if (attack && target != null)
             {
                 IHurteable hurteable = target.GetComponent<IHurteable>();
                 if (hurteable != null)
@@ -120,8 +135,18 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
                     hurteable.Hurt(1);
                 }
             }
+
+            StartCoroutine(ResetAfterAttack());
         }
     }
+
+    private IEnumerator ResetAfterAttack()
+    {
+        yield return new WaitForSeconds(1.2f);
+        isAttacking = false;
+        canMove = true;
+    }
+
     public void OnRun(InputAction.CallbackContext context)
     {
         if (context.performed)
@@ -139,7 +164,6 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
 
     public void OnJump(InputAction.CallbackContext context)
     {
-
         if (context.performed && isGrounded == true)
         {
             animator.SetBool("IsJumping", true);
@@ -155,7 +179,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     {
         if (context.performed)
         {
-            if(crouched == false)
+            if (crouched == false)
             {
                 speed = 3;
                 animator.SetBool("IsCrouching", true);
@@ -190,7 +214,6 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         }
     }
 
-
     public void TakeDamage(int damage)
     {
         HP -= damage;
@@ -223,6 +246,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
             target = null;
         }
     }
+
     public void StartJumpCoroutine()
     {
         StartCoroutine(DelayedJump());
@@ -237,6 +261,12 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     private IEnumerator WaitForAction(float wait)
     {
         yield return new WaitForSeconds(wait);
+    }
+
+    private IEnumerator EnableMovementAfterDelay(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        canMove = true;
     }
 
     public void OnAim(InputAction.CallbackContext context)

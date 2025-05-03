@@ -1,36 +1,24 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Sword : MonoBehaviour
 {
     [SerializeField] private SwordBack swordBack;
-    private bool hasSword = false;
 
-    void Start()
+    private void Start()
     {
-        if (!hasSword && swordBack != null)
+        if (swordBack != null)
         {
             swordBack.gameObject.SetActive(false);
         }
     }
 
-    void Update()
+    private void OnTriggerEnter(Collider other)
     {
-        if (!hasSword && swordBack != null)
+        if (other.CompareTag("Player"))
         {
-            swordBack.gameObject.SetActive(false);
-        }
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            hasSword = true;
             if (swordBack != null)
             {
-                swordBack.gameObject.SetActive(true);
+                swordBack.ActivateSwordBack();
             }
 
             Destroy(gameObject);

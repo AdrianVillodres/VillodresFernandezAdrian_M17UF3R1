@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Rotate : MonoBehaviour
 {
+    private MainCharacter character;
     Vector3[] directions = new Vector3[]
     {
     new Vector3(0, 0, 1),
@@ -16,14 +17,27 @@ public class Rotate : MonoBehaviour
     new Vector3(-1, 0, 1)
     };
 
+    private void Awake()
+    {
+        character = GetComponent<MainCharacter>();
+    }
+
     private void Update()
     {
-        Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
-
-        if (moveDir != Vector3.zero)
+        if (character.isAttacking)
         {
-            moveDir.Normalize();
-            RotateTo8Direction(moveDir);
+            return;
+        }
+        else
+        {
+
+            Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+
+            if (moveDir != Vector3.zero)
+            {
+                moveDir.Normalize();
+                RotateTo8Direction(moveDir);
+            }
         }
 
     }
