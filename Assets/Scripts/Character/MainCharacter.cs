@@ -144,6 +144,8 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     {
         yield return new WaitForSeconds(1.2f);
         isAttacking = false;
+        animator.SetBool("IsWalking", false);
+        ipMove = Vector3.zero;
         canMove = true;
     }
 

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using Unity.VisualScripting;
 
 public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
 {
@@ -17,6 +18,8 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
     public List<StateSO> Nodes;
     public int LostHP;
     public Slider Healthbar;
+    public bool canMove = true;
+    public bool isAttacking = false;
     [Header("Patrol System")]
     public Transform mainPoint;
     public Transform[] patrolPoints;
@@ -52,6 +55,8 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
 
     private void Update()
     {
+        if (!canMove) return;
+
         if (chase && target != null)
         {
             chaseBehaviour.Chase(target.transform);
@@ -99,16 +104,27 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player") && !isAttacking)
         {
+            isAttacking = true;
             attack = true;
+            canMove = false;
             IHurteable hurteable = collision.gameObject.GetComponent<IHurteable>();
             if (hurteable != null)
             {
                 hurteable.Hurt(1);
             }
         }
+        StartCoroutine(ResetAfterAttack());
         CheckEndingConditions();
+    }
+
+    private IEnumerator ResetAfterAttack()
+    {
+        yield return new WaitForSeconds(2f);
+        attack = false;
+        isAttacking = false;
+        canMove = true;
     }
 
     private void OnCollisionExit(Collision collision)
@@ -122,7 +138,7 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
 
     private void Patrol()
     {
-        if (patrolPoints.Length == 0) return;
+        if (patrolPoints.Length == 0 || !canMove) return;
 
         chaseBehaviour.Chase(patrolPoints[currentPatrolIndex]);
 
