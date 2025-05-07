@@ -20,7 +20,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     Animator animator;
     private Sword sword;
     public bool isAttacking = false;
-
+    public bool isWalking = false;
     public float jumpForce = 5f;
     [SerializeField] private LayerMask groundLayer;
     private BoxCollider boxCollider;
@@ -82,11 +82,13 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         {
             ipMove = context.ReadValue<Vector3>();
             animator.SetBool("IsWalking", true);
+            isWalking = true;
         }
         else if (context.canceled)
         {
             ipMove = Vector3.zero;
             animator.SetBool("IsWalking", false);
+            isWalking = false;
         }
 
         if (context.performed && crouched == true)
@@ -160,7 +162,14 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         {
             speed = 5;
             animator.SetBool("isRunning", false);
-            animator.SetBool("IsWalking", true);
+            if(!isWalking)
+            {
+                animator.SetBool("IsWalking", false);
+            }
+            else
+            {
+               animator.SetBool("IsWalking", true);
+            }
         }
     }
 
