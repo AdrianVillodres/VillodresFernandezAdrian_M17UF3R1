@@ -10,6 +10,7 @@ public class EnemyVision : MonoBehaviour
     public float timeToStopFollowingPlayer = 2.5f;
     public LayerMask obstacleLayer;
     private bool playerInSight = false;
+    private bool playerInRange = false;
 
     public bool PlayerInSight { get => playerInSight; }
 
@@ -42,11 +43,18 @@ public class EnemyVision : MonoBehaviour
         if (distanceToPlayer <= visionRange)
         {
             float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
+            playerInRange = angleToPlayer <= visionAngle / 2f;
+
 
             if (angleToPlayer <= visionAngle / 2f)
             {
+
                 RaycastHit hit;
-                if (Physics.Raycast(transform.position, directionToPlayer.normalized, out hit, visionRange, ~obstacleLayer))
+Vector3 origin = transform.position + Vector3.up * 1.5f;
+ directionToPlayer = player.position - origin;
+
+if (Physics.Raycast(origin, directionToPlayer.normalized, out hit, visionRange, ~obstacleLayer))
+
                 {
                     if (hit.transform == player)
                     {
@@ -58,10 +66,7 @@ public class EnemyVision : MonoBehaviour
 
                         playerInSight = true;
                         enemyIA.SeePlayer(player.gameObject);
-                    }
-                    else if (hit.transform.CompareTag("obstacle"))
-                    {
-                        if (playerInSight && CoroutineStopFollowing == null) CoroutineStopFollowing = StartCoroutine(StopFollowingPlayer());
+                        Debug.Log("Player in sight");
                     }
                 }
             }
@@ -79,7 +84,7 @@ public class EnemyVision : MonoBehaviour
 
 void OnDrawGizmos()
     {
-        Gizmos.color = playerInSight ? Color.green : Color.red;
+        Gizmos.color = playerInRange ? Color.green : Color.red;
         Gizmos.DrawWireSphere(transform.position, visionRange);
 
         Vector3 leftBoundary = Quaternion.Euler(0, -visionAngle / 2f, 0) * transform.forward * visionRange;
