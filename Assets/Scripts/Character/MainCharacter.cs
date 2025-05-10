@@ -27,7 +27,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     private bool canMove = true;
     public bool isDancing = false;
     public bool canRotate = true;
-
+    public bool objectPicked = false;
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
