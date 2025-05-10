@@ -1,20 +1,22 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Rotate : MonoBehaviour
 {
     private MainCharacter character;
+
+    [SerializeField] private Transform model;
+
     Vector3[] directions = new Vector3[]
     {
-    new Vector3(0, 0, 1),
-    new Vector3(1, 0, 1),
-    new Vector3(1, 0, 0),
-    new Vector3(1, 0, -1),
-    new Vector3(0, 0, -1),
-    new Vector3(-1, 0, -1),
-    new Vector3(-1, 0, 0),
-    new Vector3(-1, 0, 1)
+        new Vector3(0, 0, 1),
+        new Vector3(1, 0, 1),
+        new Vector3(1, 0, 0),
+        new Vector3(1, 0, -1),
+        new Vector3(0, 0, -1),
+        new Vector3(-1, 0, -1),
+        new Vector3(-1, 0, 0),
+        new Vector3(-1, 0, 1)
     };
 
     private void Awake()
@@ -24,22 +26,22 @@ public class Rotate : MonoBehaviour
 
     private void Update()
     {
-        if (character.isAttacking)
+        try
         {
-            return;
+            if (character.isDancing)
+                return;
         }
-        else
+        catch
         {
-
-            Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
-
-            if (moveDir != Vector3.zero)
-            {
-                moveDir.Normalize();
-                RotateTo8Direction(moveDir);
-            }
         }
 
+        Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+
+        if (moveDir != Vector3.zero)
+        {
+            moveDir.Normalize();
+            RotateTo8Direction(moveDir);
+        }
     }
 
     void RotateTo8Direction(Vector3 moveDir)
@@ -58,6 +60,6 @@ public class Rotate : MonoBehaviour
         }
 
         Quaternion targetRotation = Quaternion.LookRotation(bestDir);
-        transform.rotation = targetRotation;
+        model.rotation = targetRotation;
     }
 }

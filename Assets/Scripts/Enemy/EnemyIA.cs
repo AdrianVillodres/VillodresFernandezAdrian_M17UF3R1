@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
-using Unity.VisualScripting;
 
 public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
 {
@@ -108,23 +107,23 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
         {
             isAttacking = true;
             attack = true;
-            canMove = false;
+            canMove = false;  // Detener el movimiento mientras ataca
             IHurteable hurteable = collision.gameObject.GetComponent<IHurteable>();
             if (hurteable != null)
             {
                 hurteable.Hurt(1);
             }
+            StartCoroutine(ResetAfterAttack());
+            CheckEndingConditions();
         }
-        StartCoroutine(ResetAfterAttack());
-        CheckEndingConditions();
     }
 
     private IEnumerator ResetAfterAttack()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(2f);  // Tiempo de espera para que el ataque termine
         attack = false;
         isAttacking = false;
-        canMove = true;
+        canMove = true;  // Permite que el enemigo se mueva de nuevo
     }
 
     private void OnCollisionExit(Collision collision)
@@ -220,12 +219,13 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
             }
         }
     }
+
     public void Hurt(int damage)
     {
         HP -= damage;
         if (HP <= 0)
         {
-            HP = 0;    
+            HP = 0;
         }
         CheckEndingConditions();
         Healthbar.value = HP;
@@ -251,5 +251,4 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
         currentNode = state;
         currentNode.OnStateEnter(this);
     }
-
 }
