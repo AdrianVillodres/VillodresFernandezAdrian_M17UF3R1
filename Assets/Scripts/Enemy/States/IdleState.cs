@@ -14,6 +14,6 @@ public class IdleState : StateSO
 
     public override void OnStateUpdate(EnemyIA ec)
     {
-        Debug.Log("Here chillin");
+        //Debug.Log("Here chillin");
     }
 }

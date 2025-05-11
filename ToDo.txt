@@ -1,0 +1,6 @@
+retocar enemigo
+escenario(bioma, obstaculos, puerta, interior)
+shader
+luz
+rendimiento
+gameplay

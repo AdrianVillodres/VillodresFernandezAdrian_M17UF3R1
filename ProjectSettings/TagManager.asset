@@ -6,15 +6,17 @@ TagManager:
   tags:
   - Enemy
   - Obstacle
+  - Ground
+  - Object
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Minimap
   - Water
   - UI
-  - 
-  - 
+  - Ground
+  - Entity
   - 
   - 
   - 

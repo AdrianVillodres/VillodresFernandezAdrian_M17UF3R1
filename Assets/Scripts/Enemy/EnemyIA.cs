@@ -17,6 +17,8 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
     public List<StateSO> Nodes;
     public int LostHP;
     public Slider Healthbar;
+    public bool canMove = true;
+    public bool isAttacking = false;
     [Header("Patrol System")]
     public Transform mainPoint;
     public Transform[] patrolPoints;
@@ -25,7 +27,7 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
     private bool lostPlayer = false;
     private Vector3 lastSeenPosition;
     private float lostPlayerTimer = 0;
-
+    public Animator animator;
     private ChaseBehaviour chaseBehaviour;
     private NavMeshAgent agent;
 
@@ -35,6 +37,7 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
         enemyInputs.Enemy.SetCallbacks(this);
         chaseBehaviour = GetComponent<ChaseBehaviour>();
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
         Healthbar.maxValue = HP;
         Healthbar.value = HP;
     }
@@ -51,6 +54,8 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
 
     private void Update()
     {
+        if (!canMove) return;
+
         if (chase && target != null)
         {
             chaseBehaviour.Chase(target.transform);
@@ -96,36 +101,29 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
         lostPlayer = true;
     }
 
-   /* private void OnTriggerEnter(Collider collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            SeePlayer(collision.gameObject);
-        }
-        CheckEndingConditions();
-    }
-
-    private void OnTriggerExit(Collider collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            LostPlayer();
-        }
-        CheckEndingConditions();
-    }*/
-
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player") && !isAttacking)
         {
+            isAttacking = true;
             attack = true;
+            canMove = false;  // Detener el movimiento mientras ataca
             IHurteable hurteable = collision.gameObject.GetComponent<IHurteable>();
             if (hurteable != null)
             {
                 hurteable.Hurt(1);
             }
+            StartCoroutine(ResetAfterAttack());
+            CheckEndingConditions();
         }
-        CheckEndingConditions();
+    }
+
+    private IEnumerator ResetAfterAttack()
+    {
+        yield return new WaitForSeconds(2f);  // Tiempo de espera para que el ataque termine
+        attack = false;
+        isAttacking = false;
+        canMove = true;  // Permite que el enemigo se mueva de nuevo
     }
 
     private void OnCollisionExit(Collision collision)
@@ -139,7 +137,7 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
 
     private void Patrol()
     {
-        if (patrolPoints.Length == 0) return;
+        if (patrolPoints.Length == 0 || !canMove) return;
 
         chaseBehaviour.Chase(patrolPoints[currentPatrolIndex]);
 
@@ -221,12 +219,13 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
             }
         }
     }
+
     public void Hurt(int damage)
     {
         HP -= damage;
         if (HP <= 0)
         {
-            HP = 0;    
+            HP = 0;
         }
         CheckEndingConditions();
         Healthbar.value = HP;
@@ -252,5 +251,4 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
         currentNode = state;
         currentNode.OnStateEnter(this);
     }
-
 }

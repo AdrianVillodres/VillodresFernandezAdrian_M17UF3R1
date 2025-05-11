@@ -6,10 +6,12 @@ public class DieState : StateSO
 {
     public override void OnStateEnter(EnemyIA ec)
     {
+        ec.animator.SetBool("Die", true);
     }
 
     public override void OnStateExit(EnemyIA ec)
     {
+        ec.animator.SetBool("Die", false);
     }
 
     public override void OnStateUpdate(EnemyIA ec)
