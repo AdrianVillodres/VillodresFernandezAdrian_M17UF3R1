@@ -26,12 +26,12 @@ public class Rotate : MonoBehaviour
 
     private void Update()
     {
-        try
-        {
-            if (character.isDancing)
-                return;
+        try 
+        { 
+            if (character.isDancing || !character.canRotate)
+            return;
         }
-        catch
+        catch(System.Exception e)
         {
         }
 
@@ -43,6 +43,7 @@ public class Rotate : MonoBehaviour
             RotateTo8Direction(moveDir);
         }
     }
+
 
     void RotateTo8Direction(Vector3 moveDir)
     {
