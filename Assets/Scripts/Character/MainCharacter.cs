@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using System.Linq;
+using System.Collections.Generic;
 
 public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
 {
@@ -37,11 +39,34 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         playerInputs = new Inputs();
         boxCollider = GetComponent<BoxCollider>();
         playerInputs.Player.SetCallbacks(this);
-        sword = GetComponent<Sword>();
         character = GetComponent<MainCharacter>();
         animator = GetComponent<Animator>();
         Healthbar.maxValue = HP;
         Healthbar.value = HP;
+
+        if (GameSaveManager.HasSavedData())
+        {
+            GameSaveManager.LoadGame(out Vector3 pos, out Quaternion rot, out bool hasObj, out bool enemyKilled);
+            transform.position = pos;
+            transform.rotation = rot;
+            objectPicked = hasObj;
+
+            if (objectPicked)
+            {
+                FindObjectOfType<Sword>().gameObject.SetActive(false);
+                FindObjectOfType<SwordBack>().gameObject.SetActive(true);
+            }
+            Debug.Log(enemyKilled);
+            if (enemyKilled)
+            {
+                List<EnemyIA> a = FindObjectsOfType<EnemyIA>().ToList();
+                foreach (EnemyIA enemy in a)
+                {
+                    Destroy(enemy.gameObject);
+                }
+            }
+        }
+
     }
 
     void FixedUpdate()
