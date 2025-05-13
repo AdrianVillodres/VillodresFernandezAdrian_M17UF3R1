@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
 {
@@ -30,6 +31,8 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
     public bool objectPicked = false;
     void Awake()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         rb = GetComponent<Rigidbody>();
         playerInputs = new Inputs();
         boxCollider = GetComponent<BoxCollider>();
@@ -50,7 +53,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
             rb.MovePosition(rb.position + speed * Time.deltaTime * ipMove.normalized);
         }
 
-        if (canRotate)
+        if (canRotate && !isAttacking)
         {
             if (ipMove != Vector3.zero)
             {
@@ -59,8 +62,8 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
             }
         }
 
-        Vector3 rayOrigin = transform.position + Vector3.up * 0.5f;
-        float rayDistance = 0.5f;
+        Vector3 rayOrigin = transform.position + Vector3.up * 10f;
+        float rayDistance = 10f;
         RaycastHit hit;
 
         if (Physics.Raycast(rayOrigin, Vector3.down, out hit, rayDistance))
@@ -143,13 +146,14 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
 
     public void OnDealDamage(InputAction.CallbackContext context)
     {
-        if (context.performed && !isAttacking)
+        if (context.performed && !isAttacking && objectPicked == true)
         {
             animator.SetTrigger("Attack");
             isAttacking = true;
             canMove = false;
+            canRotate = false;
 
-            if (attack && target != null)
+            if (target != null)
             {
                 IHurteable hurteable = target.GetComponent<IHurteable>();
                 if (hurteable != null)
@@ -169,6 +173,7 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         animator.SetBool("IsWalking", false);
         ipMove = Vector3.zero;
         canMove = true;
+        canRotate = true;
     }
 
     public void OnRun(InputAction.CallbackContext context)
@@ -250,10 +255,6 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         }
     }
 
-
-
-
-
     public void OnDance(InputAction.CallbackContext context)
     {
         if (context.performed)
@@ -283,7 +284,9 @@ public class MainCharacter : MonoBehaviour, Inputs.IPlayerActions, IHurteable
         HP -= damage;
         if (HP <= 0)
         {
-            Destroy(gameObject);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            SceneManager.LoadScene(2);
         }
         Healthbar.value = HP;
     }

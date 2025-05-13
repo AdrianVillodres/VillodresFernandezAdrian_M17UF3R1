@@ -19,6 +19,7 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
     public Slider Healthbar;
     public bool canMove = true;
     public bool isAttacking = false;
+    public bool isFleeing = false;
     [Header("Patrol System")]
     public Transform mainPoint;
     public Transform[] patrolPoints;
@@ -30,6 +31,7 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
     public Animator animator;
     private ChaseBehaviour chaseBehaviour;
     private NavMeshAgent agent;
+    private IHurteable pendingDamageTarget;
 
     void Awake()
     {
@@ -103,16 +105,12 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player") && !isAttacking)
+        if (collision.gameObject.CompareTag("Player") && !isAttacking && !isFleeing) 
         {
             isAttacking = true;
             attack = true;
-            canMove = false;  // Detener el movimiento mientras ataca
-            IHurteable hurteable = collision.gameObject.GetComponent<IHurteable>();
-            if (hurteable != null)
-            {
-                hurteable.Hurt(1);
-            }
+            canMove = false;
+            pendingDamageTarget = collision.gameObject.GetComponent<IHurteable>();
             StartCoroutine(ResetAfterAttack());
             CheckEndingConditions();
         }
@@ -120,10 +118,15 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
 
     private IEnumerator ResetAfterAttack()
     {
-        yield return new WaitForSeconds(2f);  // Tiempo de espera para que el ataque termine
+        yield return new WaitForSeconds(1.5f);
+        if (pendingDamageTarget != null)
+        {
+            pendingDamageTarget.Hurt(1);
+            pendingDamageTarget = null;
+        }
         attack = false;
         isAttacking = false;
-        canMove = true;  // Permite que el enemigo se mueva de nuevo
+        canMove = true;
     }
 
     private void OnCollisionExit(Collision collision)
@@ -223,12 +226,9 @@ public class EnemyIA : MonoBehaviour, Inputs.IEnemyActions, IHurteable
     public void Hurt(int damage)
     {
         HP -= damage;
-        if (HP <= 0)
-        {
-            HP = 0;
-        }
-        CheckEndingConditions();
+        if (HP < 0) HP = 0;
         Healthbar.value = HP;
+        CheckEndingConditions();
     }
 
     public void ExitCurrentNode()

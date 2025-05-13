@@ -2,17 +2,23 @@ using UnityEngine;
 
 public class LockCameraRotation : MonoBehaviour
 {
-    private Quaternion initialLocalRotation;
+    public float sensitivity = 2f;  
+    private float rotationX = 0f;   
+    private float rotationY = 0f;   
 
-    void Start()
+    void Update()
     {
-        // Guarda la rotación local inicial de la cámara
-        initialLocalRotation = transform.localRotation;
-    }
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseY = Input.GetAxis("Mouse Y");
 
-    void LateUpdate()
-    {
-        // Fuerza la cámara a mantener su rotación local original
-        transform.localRotation = initialLocalRotation;
+
+        rotationX -= mouseY * sensitivity;
+        rotationY += mouseX * sensitivity;
+
+
+        rotationX = Mathf.Clamp(rotationX, -90f, 90f);
+
+
+        transform.localRotation = Quaternion.Euler(rotationX, rotationY, 0f);
     }
 }
